@@ -1,20 +1,22 @@
-'use strict';
+"use strict";
 
-var through = require('through2');
-var sourceMap = require('source-map');
-var applySourceMap = require('vinyl-sourcemaps-apply');
+var through = require("through2");
+var sourceMap = require("source-map");
+var applySourceMap = require("vinyl-sourcemaps-apply");
 
-module.exports = function(options) {
+module.exports = function (options) {
   function process(file, enc, cb) {
     if (file.isStream()) {
-      throw new Error('Streaming not supported');
+      throw new Error("Streaming not supported");
     }
 
     let result = parse(file.contents.toString());
-    file.contents = Buffer.from(result.source, 'utf8');
+    file.contents = Buffer.from(result.source, "utf8");
 
     if (file.sourceMap) {
-      const generator = new sourceMap.SourceMapGenerator({ file: file.sourceMap.file });
+      const generator = new sourceMap.SourceMapGenerator({
+        file: file.sourceMap.file
+      });
       for (let i = 0; i < result.mappings.length; i++) {
         generator.addMapping({
           source: file.sourceMap.file,
@@ -46,24 +48,27 @@ function parse(source) {
   }
 
   for (let i = 0; i < lines.length; i++) {
-    if (match = lines[i].match(/^import .+ from .+/)) {
+    if ((match = lines[i].match(/^import .+ from .+/))) {
       lines.splice(i, 1);
       lineMappings.splice(i, 1);
 
       // If it exists, chew a single blank line after an import statement.
-      if (lines[i] === '' || lines[i] === '\r') {
+      if (lines[i] === "" || lines[i] === "\r") {
         lines.splice(i, 1);
         lineMappings.splice(i, 1);
       }
 
       i--;
-    } else if (match = lines[i].match(/^export ((?:.|\r)+)/)) {
+    } else if ((match = lines[i].match(/^export default ((?:.|\r)+)/))) {
+      // Remove the `default` keyword...
+      lines[i] = match[1];
+    } else if ((match = lines[i].match(/^export ((?:.|\r)+)/))) {
       lines[i] = match[1];
     }
   }
 
   return {
-    source: lines.join('\n'),
+    source: lines.join("\n"),
     mappings: lineMappings
   };
 }
