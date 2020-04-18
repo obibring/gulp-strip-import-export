@@ -66,9 +66,21 @@ function parse(source) {
       lines[i] = match[1];
     }
   }
-
+  convertToplevelConstToLet(lines);
   return {
     source: lines.join("\n"),
     mappings: lineMappings
   };
+}
+
+function convertToplevelConstToLet(lines) {
+  let match
+  for (let i = 0; i < lines.length; i++) {
+    //
+    // make sure the line starts with `const` and not a space.
+    //
+    if ((match = lines[i].match(/^const ((?:.|\r)+)/))) {
+      lines[i] = "let " + match[1];
+    }
+  }
 }
